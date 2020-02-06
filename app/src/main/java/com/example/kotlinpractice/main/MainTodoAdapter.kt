@@ -2,16 +2,18 @@ package com.example.kotlinpractice.main
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.text.Layout
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.kotlinpractice.R
+import com.example.kotlinpractice.add_edit.AddEditTodoActivity
 import com.example.kotlinpractice.room.database.MyDatabase
 import com.example.kotlinpractice.room.entity.TodoItem
 
-class MainTodoAdapter (context : Context) : RecyclerView.Adapter<MainTodoViewHolder>(){
+class MainTodoAdapter (private val context : Context) : RecyclerView.Adapter<MainTodoViewHolder>(){
     private var items : MutableList<TodoItem> = mutableListOf()
     private val myDatabase = MyDatabase.getInstance(context)
     init {
@@ -33,6 +35,14 @@ class MainTodoAdapter (context : Context) : RecyclerView.Adapter<MainTodoViewHol
         notifyDataSetChanged()
     }
 
+    fun refresh(){
+        myDatabase?.todoDao()?.getAllTodo()?.also {
+            items.clear()
+            items.addAll(it)
+            notifyDataSetChanged()
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainTodoViewHolder {
         val viewHolder : MainTodoViewHolder = MainTodoViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_todo, parent, false))
         viewHolder.itemView.setOnClickListener{
@@ -47,7 +57,12 @@ class MainTodoAdapter (context : Context) : RecyclerView.Adapter<MainTodoViewHol
             builder.setItems(menu) { dialog, which ->
                 when(menu[which]) {
                     "삭제" -> deleteItem(items[viewHolder.adapterPosition])
-                    "수정" -> {} // TODO
+                    "수정" -> {
+                        val editIntent = Intent(context, AddEditTodoActivity::class.java)
+                        editIntent.putExtra("mode", AddEditTodoActivity.MODE_EDIT)
+                        editIntent.putExtra("item_id", items[viewHolder.adapterPosition].id)
+                        context.startActivity(editIntent)
+                    } // TODO
                     "취소" -> { }
                     else -> {
                         Log.d("SetOnLongClickListener", "Item position error")

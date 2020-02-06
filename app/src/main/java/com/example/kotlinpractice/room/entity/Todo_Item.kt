@@ -9,7 +9,8 @@ data class TodoItem(
     val id : Int,
     var name : String,
     var sDate : String,
-    var dDate : String
+    var dDate : String,
+    var memo : String
 ) {
     var checked : Boolean = false
 }
