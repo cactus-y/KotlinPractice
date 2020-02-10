@@ -18,8 +18,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         adapter = MainTodoAdapter(this)
-        main_rcv_item.adapter = adapter
-        main_rcv_item.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
+        widget_rcv_item.adapter = adapter
+        widget_rcv_item.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
 
         main_fab_add.setOnClickListener{
             /*val newItem = TodoItem(0, System.currentTimeMillis().toString(), "asd", "fgh")

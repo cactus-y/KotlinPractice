@@ -19,6 +19,7 @@ class AddEditTodoActivity : AppCompatActivity() {
         val MODE_ADD = 0
         val MODE_EDIT = 1
     }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_save, menu)
         return super.onCreateOptionsMenu(menu)
@@ -28,13 +29,11 @@ class AddEditTodoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_edit_todo)
         val mode = intent.getIntExtra("mode", -1)
-        actionBar?.title = if(mode == MODE_EDIT) "EditTodo" else "AddTodo"
-        actionBar?.setDisplayHomeAsUpEnabled(true)
         if(mode == MODE_EDIT){
             val id = intent.getIntExtra("item_id", -1).also {
                 if(it == -1) {
                     Log.d("item_id", "item id wrong")
-                Toast.makeText(this, "item id wrong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "item id wrong", Toast.LENGTH_SHORT).show()
                     finish()
                 }
             }
@@ -45,8 +44,9 @@ class AddEditTodoActivity : AppCompatActivity() {
                 add_edit_til_due_date.editText?.setText(it.dDate)
                 add_edit_til_memo.editText?.setText(it.memo)
             }
-
         }
+        actionBar?.title = if(mode == MODE_EDIT) "EditTodo" else "AddTodo"
+        actionBar?.setDisplayHomeAsUpEnabled(true)
         add_edit_til_start_date.editText?.setOnClickListener {
             showCalendar(add_edit_til_start_date)
         }
@@ -58,6 +58,7 @@ class AddEditTodoActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when(item?.itemId){
             R.id.menu_save -> {
+                val mode = intent.getIntExtra("mode", -1)
                 val todoName = add_edit_til_todo.editText?.text.toString()
                 val todoStart = add_edit_til_start_date.editText?.text.toString()
                 val todoDue = add_edit_til_due_date.editText?.text.toString()
@@ -67,10 +68,23 @@ class AddEditTodoActivity : AppCompatActivity() {
                         add_edit_til_start_date.error = "시작 날짜가 더 느려요!"
                         add_edit_til_due_date.error = "끝나는 날짜가 더 빨라요!"
                     } else {
-                        val newTodo = TodoItem(0, todoName, todoStart, todoDue, todoMemo)
-                        val database = MyDatabase.getInstance(this)
-                        database?.todoDao()?.insertTodo(newTodo)
-                        finish()
+                        if(mode == MODE_ADD) {
+                            val newTodo = TodoItem(0, todoName, todoStart, todoDue, todoMemo)
+                            val database = MyDatabase.getInstance(this)
+                            database?.todoDao()?.insertTodo(newTodo)
+                            finish()
+                        } else if(mode == MODE_EDIT){
+                            val database = MyDatabase.getInstance(this)
+                            val id = intent.getIntExtra("item_id", -1)
+                            database?.todoDao()?.getTodo(id)?.also {
+                                it.name = add_edit_til_todo.editText?.text.toString()
+                                it.sDate = add_edit_til_start_date.editText?.text.toString()
+                                it.dDate = add_edit_til_due_date.editText?.text.toString()
+                                it.memo = add_edit_til_memo.editText?.text.toString()
+                                database?.todoDao()?.updateTodo(it)
+                            }
+                            finish()
+                        }
                     }
                 }
             }
@@ -98,9 +112,9 @@ class AddEditTodoActivity : AppCompatActivity() {
         val mDay = cal.get(Calendar.DAY_OF_MONTH)
         DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view, year, month, dayOfMonth ->
             val sMonth : String = if (month + 1 < 10) {
-                "0$month"
+                "0" + (month + 1)
             } else {
-                month.toString()
+                (month + 1).toString()
             }
             val sDate : String = if(dayOfMonth < 10){
                 "0$dayOfMonth"
